@@ -123,6 +123,7 @@ const AdminDashboard = () => {
   );
 
   const activeBorrows = borrowedBooks.filter(record => !record.returnDate);
+  const completedBorrows = borrowedBooks.filter(record => record.returnDate);
 
   const statsData = [
     {
@@ -214,136 +215,156 @@ const AdminDashboard = () => {
         />
       </motion.div>
 
-      {/* Active Borrows Section */}
-      {activeBorrows.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-gray-50 to-indigo-50 rounded-xl shadow-lg overflow-hidden border border-indigo-100/50"
-        >
-          <div className="p-6 border-b border-indigo-100/50">
-            <h2 className="text-2xl font-bold text-gray-900">Active Borrows</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-white/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Borrow Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white/30 divide-y divide-gray-200/50">
-                {activeBorrows.map((borrow) => {
-                  const daysRemaining = getDaysRemaining(borrow.dueDate);
-                  return (
-                    <motion.tr
-                      key={borrow.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                      className="hover:bg-white/50 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 flex-shrink-0">
-                            <img className="h-10 w-10 rounded-lg object-cover" src={borrow.book.imageUrl} alt="" />
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{borrow.book.title}</div>
-                            <div className="text-sm text-gray-500">{borrow.book.author}</div>
-                          </div>
+      {/* Borrow History Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-br from-gray-50 to-indigo-50 rounded-xl shadow-lg overflow-hidden border border-indigo-100/50"
+      >
+        <div className="p-6 border-b border-indigo-100/50">
+          <h2 className="text-2xl font-bold text-gray-900">Borrow History</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-white/50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Borrow Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Return Date</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white/30 divide-y divide-gray-200/50">
+              {borrowedBooks.map((borrow) => {
+                const daysRemaining = !borrow.returnDate ? getDaysRemaining(borrow.dueDate) : null;
+                return (
+                  <motion.tr
+                    key={borrow.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="hover:bg-white/50 transition-colors"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 flex-shrink-0">
+                          <img className="h-10 w-10 rounded-lg object-cover" src={borrow.book.imageUrl} alt="" />
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{borrow.user.name}</div>
-                        <div className="text-sm text-gray-500">{borrow.user.email}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(borrow.borrowDate)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(borrow.dueDate)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{borrow.book.title}</div>
+                          <div className="text-sm text-gray-500">{borrow.book.author}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{borrow.user.name}</div>
+                      <div className="text-sm text-gray-500">{borrow.user.email}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(borrow.borrowDate)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(borrow.dueDate)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {borrow.returnDate ? (
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                          Returned
+                        </span>
+                      ) : (
                         <span
                           className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            daysRemaining > 2
-                              ? 'bg-green-100 text-green-800'
-                              : daysRemaining > 0
+                            daysRemaining && daysRemaining > 2
+                              ? 'bg-blue-100 text-blue-800'
+                              : daysRemaining && daysRemaining > 0
                               ? 'bg-yellow-100 text-yellow-800'
                               : 'bg-red-100 text-red-800'
                           }`}
                         >
-                          {daysRemaining > 0
+                          {daysRemaining && daysRemaining > 0
                             ? `${daysRemaining} days remaining`
                             : 'Overdue'}
                         </span>
-                      </td>
-                    </motion.tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
-      )}
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {borrow.returnDate ? formatDate(borrow.returnDate) : '-'}
+                    </td>
+                  </motion.tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
 
       {/* Books Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {filteredBooks.map((book, index) => (
           <motion.div
             key={book.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className={`group relative bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 ${
+            className={`group bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 ${
               selectedBook?.id === book.id ? 'ring-2 ring-indigo-500' : ''
             }`}
             onClick={() => setSelectedBook(selectedBook?.id === book.id ? null : book)}
           >
-            <div className="relative h-72">
-              <img
-                src={book.imageUrl}
-                alt={book.title}
-                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                <h3 className="text-2xl font-bold text-white mb-2">{book.title}</h3>
-                <p className="text-lg text-gray-200 mb-2">By {book.author}</p>
-                <p className="text-sm text-gray-300">ISBN: {book.isbn}</p>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="mb-4">
-                <p className="text-gray-700 line-clamp-3 group-hover:line-clamp-none transition-all duration-300">
-                  {book.description}
-                </p>
-              </div>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium ${
-                      book.availableQuantity > 0
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text -red-800'
-                    }`}
-                  >
-                    {book.availableQuantity} of {book.quantity} available
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <label className="text-sm font-medium text-gray-700">Quantity:</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={book.quantity}
-                    onChange={(e) => handleUpdateQuantity(book, parseInt(e.target.value))}
-                    className="w-24 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            <div className="flex flex-col md:flex-row">
+              {/* Book Cover */}
+              <div className="relative w-full md:w-1/3">
+                <div className="aspect-[3/4] relative">
+                  <img
+                    src={book.imageUrl}
+                    alt={book.title}
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </div>
+              </div>
+
+              {/* Book Details */}
+              <div className="flex-1 p-6">
+                <div className="mb-4">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
+                    {book.title}
+                  </h3>
+                  <p className="text-lg text-gray-600 mb-2">By {book.author}</p>
+                  <p className="text-sm text-gray-500 mb-4">ISBN: {book.isbn}</p>
+                  
+                  <div className="mb-4">
+                    <p className="text-gray-700 line-clamp-3 group-hover:line-clamp-none transition-all duration-300">
+                      {book.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 mt-auto">
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium ${
+                        book.availableQuantity > 0
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {book.availableQuantity} of {book.quantity} available
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3">
+                    <label className="text-sm font-medium text-gray-700">Quantity:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={book.quantity}
+                      onChange={(e) => handleUpdateQuantity(book, parseInt(e.target.value))}
+                      className="w-24 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

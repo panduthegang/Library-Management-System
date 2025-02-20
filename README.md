@@ -46,7 +46,7 @@ A modern, full-featured library management system built with React, Firebase, an
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/panduthegang/Library-Management-System.git
+git clone https://github.com/yourusername/library-management-system.git
 cd library-management-system
 ```
 
@@ -103,10 +103,10 @@ npm run dev
 ## 📱 Screenshots
 
 ### Admin Dashboard
-![Admin Dashboard](./public/Admin.png)
+![Admin Dashboard](https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1200&q=80)
 
 ### User Interface
-![User Interface](./public/User.png)
+![User Interface](https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80)
 
 ## 🔒 Security
 
@@ -131,4 +131,18 @@ npm run dev
 - Advanced search filters
 - Mobile app version
 
-<div align="center"> Made with ❤️ by Harsh Rathod</div>
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📧 Contact
+
+For any questions or feedback, please reach out to [your@email.com](mailto:your@email.com)
+
+---
+
+Made with ❤️ by [Your Name]

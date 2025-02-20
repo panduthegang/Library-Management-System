@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserPlus, Library, Mail, Lock, User } from 'lucide-react';
-import { register } from '../utils/auth';
+import { register, loginWithGoogle } from '../utils/auth';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
@@ -13,6 +13,7 @@ const Register = () => {
     name: '',
   });
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +36,29 @@ const Register = () => {
       toast.error('Registration failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    setGoogleLoading(true);
+    try {
+      const user = await loginWithGoogle();
+      if (user) {
+        toast.success('Welcome to the library!', {
+          icon: '📚',
+          style: {
+            borderRadius: '10px',
+            background: '#333',
+            color: '#fff',
+          },
+        });
+        navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+      }
+    } catch (error) {
+      console.error('Google signup error:', error);
+      toast.error('Google signup failed');
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -133,6 +157,7 @@ const Register = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
+                className="space-y-4"
               >
                 <button
                   type="submit"
@@ -147,7 +172,40 @@ const Register = () => {
                   ) : (
                     <div className="flex items-center justify-center">
                       <UserPlus className="h-5 w-5 mr-2" />
-                      Create Account
+                      Create Account with Email
+                    </div>
+                  )}
+                </button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/20"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-transparent text-white/60">Or continue with</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGoogleSignup}
+                  disabled={googleLoading}
+                  className="w-full bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] motion-safe:transition border border-white/20"
+                >
+                  {googleLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Connecting...
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81Z"
+                        />
+                      </svg>
+                      Sign up with Google
                     </div>
                   )}
                 </button>

@@ -101,14 +101,15 @@ export const borrowBook = async (bookId: string, userId: string): Promise<void> 
 
       const borrowDate = new Date();
       const dueDate = new Date(borrowDate);
-      dueDate.setDate(dueDate.getDate() + 7);
+      dueDate.setDate(dueDate.getDate() + 14); // Extended to 14 days
 
       await addDoc(collection(db, 'borrowRecords'), {
         bookId,
         userId,
         borrowDate: Timestamp.fromDate(borrowDate),
         dueDate: Timestamp.fromDate(dueDate),
-        returnDate: null
+        returnDate: null,
+        reminderSent: false
       });
     }
   } catch (error) {

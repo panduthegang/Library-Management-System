@@ -1,0 +1,121 @@
+classDiagram
+    class FirebaseAuth {
+        +auth: Auth
+        +createUserWithEmailAndPassword()
+        +signInWithEmailAndPassword()
+        +signOut()
+        +onAuthStateChanged()
+    }
+
+    class FirebaseFirestore {
+        +db: Firestore
+        +collection()
+        +doc()
+        +query()
+        +where()
+        +orderBy()
+        +serverTimestamp()
+    }
+
+    class UsersCollection {
+        <<Firestore Collection>>
+        +string id [PK]
+        +string email
+        +string name
+        +enum role
+        +Timestamp createdAt
+        +addDoc()
+        +getDoc()
+        +updateDoc()
+    }
+
+    class BooksCollection {
+        <<Firestore Collection>>
+        +string id [PK]
+        +string title
+        +string author
+        +string isbn
+        +string imageUrl
+        +string description
+        +boolean available
+        +number quantity
+        +number availableQuantity
+        +Timestamp createdAt
+        +addDoc()
+        +getDoc()
+        +updateDoc()
+    }
+
+    class BorrowRecordsCollection {
+        <<Firestore Collection>>
+        +string id [PK]
+        +string bookId [FK]
+        +string userId [FK]
+        +Timestamp borrowDate
+        +Timestamp dueDate
+        +Timestamp returnDate
+        +addDoc()
+        +getDoc()
+        +updateDoc()
+        +query()
+    }
+
+    class AuthService {
+        +auth: FirebaseAuth
+        +login(email: string, password: string)
+        +register(userData: UserData)
+        +signOut()
+        +getCurrentUser()
+        -handleAuthStateChange()
+    }
+
+    class BookService {
+        +db: FirebaseFirestore
+        +addBook(book: BookData)
+        +getBooks()
+        +updateBook(book: Book)
+        +updateBookQuantity(bookId: string, quantity: number)
+        +getBorrowedCount(bookId: string)
+        -handleBookTransaction()
+    }
+
+    class BorrowService {
+        +db: FirebaseFirestore
+        +borrowBook(bookId: string, userId: string)
+        +returnBook(bookId: string, userId: string)
+        +getBorrowedBooks(userId: string)
+        +getAllBorrowedBooks()
+        -handleBorrowTransaction()
+    }
+
+    class LocalStorage {
+        +setItem()
+        +getItem()
+        +removeItem()
+    }
+
+    FirebaseAuth --> AuthService : provides
+    FirebaseFirestore --> BookService : provides
+    FirebaseFirestore --> BorrowService : provides
+    
+    AuthService --> UsersCollection : manages
+    BookService --> BooksCollection : manages
+    BorrowService --> BorrowRecordsCollection : manages
+    
+    AuthService --> LocalStorage : uses
+    
+    UsersCollection "1" -- "*" BorrowRecordsCollection : references
+    BooksCollection "1" -- "*" BorrowRecordsCollection : references
+    
+    BorrowRecordsCollection --> BooksCollection : updates quantity
+    AuthService --> FirebaseAuth : authenticates
+    
+    class FirebaseIndexes {
+        <<Firestore Indexes>>
+        +borrowRecords_userId_returnDate
+        +borrowRecords_bookId_returnDate
+        +borrowRecords_borrowDate_desc
+        +borrowRecords_userId_borrowDate_desc
+    }
+    
+    FirebaseFirestore --> FirebaseIndexes : defines
