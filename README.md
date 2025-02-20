@@ -131,18 +131,4 @@ npm run dev
 - Advanced search filters
 - Mobile app version
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📧 Contact
-
-For any questions or feedback, please reach out to [your@email.com](mailto:your@email.com)
-
----
-
-Made with ❤️ by [Your Name]
+<div align="center">Made with ❤️ Harsh Rathod</div>
