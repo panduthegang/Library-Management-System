@@ -103,10 +103,10 @@ npm run dev
 ## 📱 Screenshots
 
 ### Admin Dashboard
-![Admin Dashboard](https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1200&q=80)
+![Admin Dashboard](./public/Admin.png)
 
 ### User Interface
-![User Interface](https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80)
+![User Interface](./public/User.png)
 
 ## 🔒 Security
 
