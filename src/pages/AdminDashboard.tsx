@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Book as BookIcon, Plus, Users, Search, X, BookOpen, Calendar, Users2 } from 'lucide-react';
+import { Book as BookIcon, Plus, Users, Search, X, BookOpen, Calendar, Users2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Book, BorrowedBookDetails } from '../types';
 import { addBook, getBooks, updateBook, updateBookQuantity, getAllBorrowedBooks } from '../utils/books';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import { AddBookForm } from '../components/AddBookForm';
+import { BookCardSkeleton, StatsSkeleton } from '../components/SkeletonLoader';
 
 const AdminDashboard = () => {
   const [books, setBooks] = useState<Book[]>([]);
@@ -13,13 +15,12 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [newBook, setNewBook] = useState({
-    title: '',
-    author: '',
-    isbn: '',
-    imageUrl: '',
-    description: '',
-  });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage] = useState(5);
+  const [sortField, setSortField] = useState<'borrowDate' | 'dueDate' | 'returnDate'>('borrowDate');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const { ref: statsRef, inView: statsInView } = useInView({
     triggerOnce: true,
@@ -46,19 +47,36 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
-  const handleAddBook = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Sort and paginate borrow records
+  const sortedBorrowRecords = [...borrowedBooks].sort((a, b) => {
+    const dateA = new Date(a[sortField]).getTime();
+    const dateB = new Date(b[sortField]).getTime();
+    return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+  });
+
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = sortedBorrowRecords.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(sortedBorrowRecords.length / recordsPerPage);
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleSort = (field: 'borrowDate' | 'dueDate' | 'returnDate') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const handleAddBook = async (bookData: any) => {
     try {
-      const book = await addBook(newBook);
+      const book = await addBook(bookData);
       setBooks(prevBooks => [...prevBooks, book]);
       setShowAddForm(false);
-      setNewBook({
-        title: '',
-        author: '',
-        isbn: '',
-        imageUrl: '',
-        description: '',
-      });
       toast.success('Book added successfully!', {
         icon: '📚',
         style: {
@@ -105,12 +123,58 @@ const AdminDashboard = () => {
     return diffDays;
   };
 
+  const PaginationControls = () => (
+    <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200">
+      <div className="flex items-center">
+        <span className="text-sm text-gray-700">
+          Showing <span className="font-medium">{indexOfFirstRecord + 1}</span> to{' '}
+          <span className="font-medium">
+            {Math.min(indexOfLastRecord, sortedBorrowRecords.length)}
+          </span>{' '}
+          of <span className="font-medium">{sortedBorrowRecords.length}</span> records
+        </span>
+      </div>
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronLeft className="h-5 w-5 text-gray-600" />
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => handlePageChange(page)}
+            className={`px-3 py-1 rounded-lg transition-colors ${
+              currentPage === page
+                ? 'bg-blue-500 text-white'
+                : 'hover:bg-gray-100 text-gray-700'
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronRight className="h-5 w-5 text-gray-600" />
+        </button>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading library data...</p>
+      <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="h-48 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl animate-pulse" />
+        <StatsSkeleton />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {[1, 2, 3, 4].map((i) => (
+            <BookCardSkeleton key={i} />
+          ))}
         </div>
       </div>
     );
@@ -230,14 +294,35 @@ const AdminDashboard = () => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Borrow Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group" onClick={() => handleSort('borrowDate')}>
+                  <div className="flex items-center">
+                    Borrow Date
+                    <span className={`ml-1 opacity-0 group-hover:opacity-100 ${sortField === 'borrowDate' && 'opacity-100'}`}>
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group" onClick={() => handleSort('dueDate')}>
+                  <div className="flex items-center">
+                    Due Date
+                    <span className={`ml-1 opacity-0 group-hover:opacity-100 ${sortField === 'dueDate' && 'opacity-100'}`}>
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  </div>
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Return Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group" onClick={() => handleSort('returnDate')}>
+                  <div className="flex items-center">
+                    Return Date
+                    <span className={`ml-1 opacity-0 group-hover:opacity-100 ${sortField === 'returnDate' && 'opacity-100'}`}>
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white/30 divide-y divide-gray-200/50">
-              {borrowedBooks.map((borrow) => {
+              {currentRecords.map((borrow) => {
                 const daysRemaining = !borrow.returnDate ? getDaysRemaining(borrow.dueDate) : null;
                 return (
                   <motion.tr
@@ -298,6 +383,7 @@ const AdminDashboard = () => {
             </tbody>
           </table>
         </div>
+        <PaginationControls />
       </motion.div>
 
       {/* Books Grid */}
@@ -375,99 +461,10 @@ const AdminDashboard = () => {
       {/* Add Book Modal */}
       <AnimatePresence>
         {showAddForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-xl max-w-xl w-full max-h-[90vh] overflow-y-auto"
-            >
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">Add New Book</h2>
-                <button
-                  onClick={() => setShowAddForm(false)}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-              <form onSubmit={handleAddBook} className="p-6 space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                  <input
-                    type="text"
-                    value={newBook.title}
-                    onChange={(e) => setNewBook({ ...newBook, title: e.target.value })}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-20 transition-colors"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Author</label>
-                  <input
-                    type="text"
-                    value={newBook.author}
-                    onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-20 transition-colors"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">ISBN</label>
-                  <input
-                    type="text"
-                    value={newBook.isbn}
-                    onChange={(e) => setNewBook({ ...newBook, isbn: e.target.value })}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-20 transition-colors"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                  <input
-                    type="url"
-                    value={newBook.imageUrl}
-                    onChange={(e) => setNewBook({ ...newBook, imageUrl: e.target.value })}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-20 transition-colors"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea
-                    value={newBook.description}
-                    onChange={(e) => setNewBook({ ...newBook, description: e.target.value })}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-20 transition-colors min-h-[100px] resize-y"
-                    required
-                  />
-                </div>
-                <div className="flex gap-4 pt-4">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl font-medium"
-                  >
-                    Add Book
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="button"
-                    onClick={() => setShowAddForm(false)}
-                    className="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-200 transition-colors font-medium"
-                  >
-                    Cancel
-                  </motion.button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
+          <AddBookForm
+            onSubmit={handleAddBook}
+            onClose={() => setShowAddForm(false)}
+          />
         )}
       </AnimatePresence>
     </div>
